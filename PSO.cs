@@ -115,7 +115,7 @@ namespace ANN_PSO
             }
 
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < numberOfInformantGroups; i++)
             {
                 bestInformantErrror.Add(double.MaxValue);
             }
@@ -143,10 +143,10 @@ namespace ANN_PSO
 
                     }
                 }
-                
+
                 for (int particlenum = 0; particlenum < swarmsize; particlenum++)
                 {
-                    AssessFitness(output[particlenum], particlenum, x);
+                    AssessFitness(output[particlenum], particlenum, x, numberOfInformantGroups);
                     double temp = 0.5 / 1000;
                     if (inertiaweight > 0.4) inertiaweight -= temp;
                     UpdateParticle(inertiaweight, cognitiveweight, socialweight, globalweight, ANNStructure, particlenum, numberOfInformantGroups);
@@ -184,7 +184,7 @@ namespace ANN_PSO
             velocityChange[particleNumber].Clear();
             for (int x = 0; x < swarmPositions[particleNumber].Count - 1; x++)
             {
-                //Debug.WriteLine(inertiaweight + "*" + (velocity[particlenum][x]) + "+" + b + "*" + (particlebestpositions[particlenum][x] + "-" + swarmpositions[particlenum][x]) + "+" + c + "*" + (informantsbestpositions[informantgroup][x] + "-" + swarmpositions[particlenum][x]) + "+" + d +  "*" + (particlebestpositions[bestnet][x]));
+                //Debug.WriteLine(inertiaweight + "" + (velocity[particlenum][x]) + "+" + b + "" + (particlebestpositions[particlenum][x] + "-" + swarmpositions[particlenum][x]) + "+" + c + "" + (informantsbestpositions[informantgroup][x] + "-" + swarmpositions[particlenum][x]) + "+" + d +  "" + (particlebestpositions[bestnet][x]));
                 velocityChange[particleNumber].Add((inertiaweight * (velocity[particleNumber][x])) + (b * (particleBestPositions[particleNumber][x] - swarmPositions[particleNumber][x])) + (c * (informantBestPositions[informantgroup][x] - swarmPositions[particleNumber][x])) + (d * (particleBestPositions[bestnet][x] - swarmPositions[particleNumber][x])));
                 //Debug.WriteLine(velocitychange[particlenum][x]);
                 velocity[particleNumber][x] = velocityChange[particleNumber][x];
@@ -266,10 +266,10 @@ namespace ANN_PSO
         /// <param name="epoch">Which epoch of ANN this is. </param>
         /// <returns></returns>
         /// 
-        static double AssessFitness(List<double> output, int particlenum, int epoch) 
+        static double AssessFitness(List<double> output, int particlenum, int epoch, int numberOfInformantGroups)
         {
             double Error = 0;
-            int informantgroup = particlenum % 5;
+            int informantgroup = particlenum % numberOfInformantGroups;
             currentError[particlenum] = Error;
 
             for (int x = 0; x < output.Count && x < correctOutput.Count; x++)
@@ -323,4 +323,3 @@ namespace ANN_PSO
 
         }
     }
-}
