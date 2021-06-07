@@ -12,26 +12,30 @@ namespace ANN_PSO
 {
     class PSO
     {
-        static double[][][] particleBestLocation;
-        public static double bestError = double.MaxValue; //Sets current best Error to max value
-        static double[][] bestLocations;
-        public static List<double> position = new List<double>();
-        public static List<List<double>> velocityChange = new List<List<double>>();
-        public static List<List<double>> velocity = new List<List<double>>();
+
+
+
+        private static List<List<double>> velocityChange = new List<List<double>>();
+        private static List<List<double>> velocity = new List<List<double>>();
+
+
         public static List<List<double>> swarmPositions = new List<List<double>>();
-        public static List<List<double>> newSwarmPositions = new List<List<double>>();
-        public static List<List<double>> informantBestPositions = new List<List<double>>();
-        public static List<List<double>> particleBestPositions = new List<List<double>>();
-        public static List<double> personalBestError = new List<double>();
-        public static List<double> currentError = new List<double>();
-        public static List<double> bestInformantErrror = new List<double>();
+        private static List<List<double>> newSwarmPositions = new List<List<double>>();
+        private static List<List<double>> informantBestPositions = new List<List<double>>();
+        private static List<List<double>> particleBestPositions = new List<List<double>>();
+
+        private static double _bestError = double.MaxValue; //Sets current best Error to max value
+        private static List<double> _personalBestError = new List<double>();
+        private static List<double> _currentError = new List<double>();
+        private static List<double> _bestInformantError = new List<double>();
+
         public static List<double> input = new List<double>();
+        public static List<double> correctOutput = new List<double>();
+        public static List<List<double>> output = new List<List<double>>();
 
         static double[][] biases;
         public static double[][][][] weights;
-        public static List<double> correctOutput = new List<double>();
-        public static List<List<double>> output = new List<List<double>>();
-        public static List<int> informants = new List<int>();
+
 
         public static string path;
 
@@ -41,24 +45,17 @@ namespace ANN_PSO
             double cognitiveWeight, double socialWeight, double globalWeight, int numberOfInformantGroups)
         {
 
-            bestLocations = new double[annStructure.Length][];
-
-            particleBestLocation = new double[swarmSize][][];
             biases = new double[swarmSize][];
             weights = new double[swarmSize][][][];
 
             double[] particleBestError = new double[swarmSize];
 
-            for (int i = 0; i < swarmSize; i++) //Sets the best Error for each particle to max value.
-            {
-                particleBestError[i] = double.MaxValue;
-            }
-
             Random rnd = new Random();
-            for (int particleNum = 0; particleNum < swarmSize; particleNum++)
+            for (int particleNum = 0; particleNum < swarmSize; particleNum++)  
             {
-                personalBestError.Add(double.MaxValue); //Sets best Errors to be max Value so any Error following is considered an improvement
-                currentError.Add(double.MaxValue);
+                particleBestError[particleNum] = double.MaxValue;
+                _personalBestError.Add(double.MaxValue); //Sets best Errors to be max Value so any Error following is considered an improvement
+                _currentError.Add(double.MaxValue);
                 swarmPositions.Add(new List<double>());
                 newSwarmPositions.Add(new List<double>());
                 informantBestPositions.Add(new List<double>());
@@ -71,19 +68,13 @@ namespace ANN_PSO
 
             for (int i = 0; i < numberOfInformantGroups; i++)
             {
-                bestInformantErrror.Add(double.MaxValue);
+                _bestInformantError.Add(double.MaxValue);
             }
-
-
-
 
             DataInputSort(annStructure);
 
-           
-
-
+            
             //Main Control Function of the PSO. Running through each generation
-
             int currentGeneration = 0;
             while (currentGeneration < maxGenerations)
             {
@@ -94,7 +85,7 @@ namespace ANN_PSO
                     {
                         new ANN(particleNum, null, null, activationFunction, annStructure);
                         velocity[particleNum].Clear();
-                        velocity[particleNum].AddRange(ListMult(rnd.NextDouble(), swarmPositions[particleNum])); //give particle a random velocity created by multiplying its position by a random value.
+                        velocity[particleNum].AddRange(MultiplyList(rnd.NextDouble(), swarmPositions[particleNum])); //give particle a random velocity created by multiplying its position by a random value.
                         particleBestPositions[particleNum].AddRange(swarmPositions[particleNum]); //each position becomes the best ever position for that particle
 
                     }
@@ -121,7 +112,7 @@ namespace ANN_PSO
         }
 
         /// <summary>
-        /// Processes the Input Data File into suitable inputs for the ANN and the ANNs ideal output.
+        /// Processes the Input Data File into suitable inputs for the ANN and the ANNs ideal realOutput.
         /// </summary>
         /// <param name="annStructure"> The Structure of the ANN. Represented by an array with the number of nodes in each layer</param>
         private static void DataInputSort(int[] annStructure)
@@ -134,12 +125,12 @@ namespace ANN_PSO
 
             int numCount = 0;
 
-            foreach (string value in inputSplit)
+            foreach (string value in inputSplit)  //Determines if value is an input or realOutput by the number of inputs for the ANN (annStructure[0]) size.
             {
 
                 if (value != string.Empty)
                 {
-                    //Determines if value is an input or output by the number of inputs for the ANN (annStructure[0]) size.
+                   
                     if (numCount < annStructure[0])    
                     {
                         input.Add(Convert.ToDouble(value));
@@ -164,8 +155,7 @@ namespace ANN_PSO
         /// <param name="annStructure">The Layout of the ANN</param>
         /// <param name="particleNumber">The ANN's index.</param>
         /// <param name="numberOfInformantGroups">Number of Groups that the Population is split into for a particle's social pull</param>
-        private static void UpdateParticle(double inertiaWeight, double cognitiveWeight, double socialWeight,
-            double globalWeight, int[] annStructure, int particleNumber, int numberOfInformantGroups)
+        private static void UpdateParticle(double inertiaWeight, double cognitiveWeight, double socialWeight, double globalWeight, int[] annStructure, int particleNumber, int numberOfInformantGroups)
         {
             double stepSize = 1;
             var informantGroup = particleNumber % numberOfInformantGroups;
@@ -173,154 +163,128 @@ namespace ANN_PSO
             biases[particleNumber] = new double[annStructure.Length - 1];
             var rnd = new Random();
 
+            //Adds randomness to Weights for more varying exploration
             double b = rnd.NextDouble() * cognitiveWeight;
             double c = rnd.NextDouble() * socialWeight;
             double d = rnd.NextDouble() * globalWeight;
 
+
+
+            //Calculates Velocity change based on PSO formula
             velocityChange[particleNumber].Clear();
             for (int x = 0; x < swarmPositions[particleNumber].Count - 1; x++)
             {
-                //Debug.WriteLine(inertiaWeight + "" + (velocity[particlenum][x]) + "+" + b + "" + (particlebestpositions[particlenum][x] + "-" + swarmpositions[particlenum][x]) + "+" + c + "" + (informantsbestpositions[informantgroup][x] + "-" + swarmpositions[particlenum][x]) + "+" + d +  "" + (particlebestpositions[bestnet][x]));
                 velocityChange[particleNumber].Add((inertiaWeight * (velocity[particleNumber][x])) + (b * (particleBestPositions[particleNumber][x] - swarmPositions[particleNumber][x])) + (c * (informantBestPositions[informantGroup][x] - swarmPositions[particleNumber][x])) + (d * (particleBestPositions[bestnet][x] - swarmPositions[particleNumber][x])));
-                //Debug.WriteLine(velocitychange[particlenum][x]);
                 velocity[particleNumber][x] = velocityChange[particleNumber][x];
-                //Debug.WriteLine(velocity[particlenum][x]);
             }
 
-
+            //Adjusts position of particles based on their new velocities
             for (int x = 0; x < swarmPositions[particleNumber].Count - 1; x++)
             {
-                //Debug.WriteLine(swarmpositions[particlenum][x]);
-                swarmPositions[particleNumber][x] =
-                    (swarmPositions[particleNumber][x] + (stepSize * velocity[particleNumber][x]));
-                //Debug.WriteLine(swarmpositions[particlenum][x]);
+                swarmPositions[particleNumber][x] = (swarmPositions[particleNumber][x] + (stepSize * velocity[particleNumber][x]));
             }
 
-            int particleposlength;
-
-            particleposlength = swarmPositions[particleNumber].Count;
-
-
-            int weightpos = 0;
+            int particlePosLength = swarmPositions[particleNumber].Count;
+            int weightPos = 0;
+            
+            //Creates Weights for ANN
             weights[particleNumber] = new double[annStructure.Length - 1][][];
-
-            for (int layernum = 0; layernum < annStructure.Length - 1; layernum++)
+            for (int layerNum = 0; layerNum < annStructure.Length - 1; layerNum++)
             {
-                weights[particleNumber][layernum] = new double[annStructure[layernum]][];
+                weights[particleNumber][layerNum] = new double[annStructure[layerNum]][];
 
-                for (int neuron = 0; neuron < annStructure[layernum]; neuron++)
+                for (int neuron = 0; neuron < annStructure[layerNum]; neuron++)
                 {
-                    weights[particleNumber][layernum][neuron] = new double[annStructure[layernum + 1]];
+                    weights[particleNumber][layerNum][neuron] = new double[annStructure[layerNum + 1]];
 
                 }
 
             }
 
-
-            for (int layernum = 0; layernum < annStructure.Length - 1; layernum++)
+            for (int layerNum = 0; layerNum < annStructure.Length - 1; layerNum++)
             {
-                //Debug.WriteLine(swarmpositions[particlenum][particleposlength - annStructure.Length - 1 + layernum]);
-                swarmPositions[particleNumber][particleposlength - annStructure.Length - 1 + layernum] =
-                    (swarmPositions[particleNumber][particleposlength - annStructure.Length - 1 + layernum] > 10D)
-                        ? 10D
-                        : swarmPositions[particleNumber][particleposlength - annStructure.Length - 1 + layernum];
-                swarmPositions[particleNumber][particleposlength - annStructure.Length - 1 + layernum] =
-                    (swarmPositions[particleNumber][particleposlength - annStructure.Length - 1 + layernum] < -10D)
-                        ? -10D
-                        : swarmPositions[particleNumber][particleposlength - annStructure.Length - 1 + layernum];
+                //Adjusts Positions of particles so that if they exceed the investigation area they are repositioned to be at the edge of that area.
+                swarmPositions[particleNumber][particlePosLength - annStructure.Length - 1 + layerNum] = (swarmPositions[particleNumber][particlePosLength - annStructure.Length - 1 + layerNum] > 10D) ? 10D : swarmPositions[particleNumber][particlePosLength - annStructure.Length - 1 + layerNum];     
+                swarmPositions[particleNumber][particlePosLength - annStructure.Length - 1 + layerNum] = (swarmPositions[particleNumber][particlePosLength - annStructure.Length - 1 + layerNum] < -10D) ? -10D : swarmPositions[particleNumber][particlePosLength - annStructure.Length - 1 + layerNum];
+                biases[particleNumber][layerNum] = swarmPositions[particleNumber][particlePosLength - annStructure.Length - 1 + layerNum];
 
-                biases[particleNumber][layernum] =
-                    swarmPositions[particleNumber][particleposlength - annStructure.Length - 1 + layernum];
-
-                for (int neuron = 0; neuron < annStructure[layernum]; neuron++)
+                for (int neuron = 0; neuron < annStructure[layerNum]; neuron++)
                 {
-
-
-                    for (int neuronconnection = 0; neuronconnection < annStructure[layernum + 1]; neuronconnection++)
+                    for (int neuronConnection = 0; neuronConnection < annStructure[layerNum + 1]; neuronConnection++)
                     {
-
-                        //swarmpositions[particlenum][weightpos] = (swarmpositions[particlenum][weightpos] > 10D) ? 10D : swarmpositions[particlenum][weightpos];
-                        //swarmpositions[particlenum][weightpos] = (swarmpositions[particlenum][weightpos] < -10D) ? -10D : swarmpositions[particlenum][weightpos];
-
-                        weights[particleNumber][layernum][neuron][neuronconnection] =
-                            swarmPositions[particleNumber][weightpos];
-                        weightpos++;
+                        weights[particleNumber][layerNum][neuron][neuronConnection] = swarmPositions[particleNumber][weightPos];
+                        weightPos++;
                     }
                 }
             }
         }
 
-
-        static List<double> ListMult(double i, List<double> list1)
+        /// <summary>
+        /// Multiplies Each value in the list by a singular double value.
+        /// </summary>
+        /// <param name="multiplier">Value Multiplier</param>
+        /// <param name="oldList">List to be multiplied</param>
+        /// <returns></returns>
+        private static List<double> MultiplyList(double multiplier, List<double> oldList)
         {
-            List<double> newlist = new List<double>();
-
-            for (int x = 0; x < list1.Count; x++)
+            List<double> newList = new List<double>();
+            foreach (var listEntry in oldList)
             {
-                newlist.Add((list1[x] * i));
+                newList.Add((listEntry * multiplier));
             }
 
-            return newlist;
+            return newList;
         }
 
 
         /// <summary>
-        /// Assesses the Fitness of the Particle based on the output given and the correct output as found in the text file.
+        /// Assesses the Fitness of the Particle based on the realOutput given and the correct realOutput as found in the text file.
         /// </summary>
-        /// <param name="output">Output from the ANN</param>
-        /// <param name="particlenum">The number of the particle/ANN being assessed.</param>
-        /// <param name="epoch">Which maxGenerations of ANN this is. </param>
+        /// <param name="realOutput">Output from the ANN</param>
+        /// <param name="particleNumber">The number of the particle/ANN being assessed.</param>
+        /// <param name="generation">Which maxGenerations of ANN this is. </param>
+        /// <param name="numberOfInformantGroups">Number of Groups that the Population is split into for a particle's social pull</param>
         /// <returns></returns>
         /// 
-        static double AssessFitness(List<double> output, int particlenum, int epoch, int numberOfInformantGroups)
+        static double AssessFitness(List<double> realOutput, int particleNumber, int generation, int numberOfInformantGroups)
         {
             double Error = 0;
-            int informantgroup = particlenum % numberOfInformantGroups;
-            currentError[particlenum] = Error;
+            int informantGroup = particleNumber % numberOfInformantGroups;
+            _currentError[particleNumber] = Error;
 
-            for (int x = 0; x < output.Count && x < correctOutput.Count; x++)
+            for (int x = 0; x < realOutput.Count && x < correctOutput.Count; x++)
             {
-                Error = Math.Pow((correctOutput[x] - output[x]), 2);
+                Error = Math.Pow((correctOutput[x] - realOutput[x]), 2);
 
-                currentError[particlenum] += Error;
+                _currentError[particleNumber] += Error;
 
             }
 
-            //Debug.WriteLine(Error);
-            //Debug.WriteLine(correctoutput[0]);
-            //Debug.WriteLine(output[0]);
-
-            //Debug.WriteLine(currentError[particlenum] + "   particlenum:" + particlenum);
-
-            if (currentError[particlenum] < bestError)
+            if (_currentError[particleNumber] < _personalBestError[particleNumber])   //New personal best
             {
-                bestError = currentError[particlenum];
-                bestnet = particlenum;
+                _personalBestError[particleNumber] = _currentError[particleNumber];
+                particleBestPositions[particleNumber].Clear();
+                particleBestPositions[particleNumber].AddRange(swarmPositions[particleNumber]);
 
-                Debug.WriteLine("besterror: " + bestError);
-                Debug.WriteLine(epoch);
+                if (_currentError[particleNumber] < _bestInformantError[informantGroup]) //New group best
+                {
+                    _bestInformantError[informantGroup] = _currentError[particleNumber];
+                    informantBestPositions[informantGroup].Clear();
+                    informantBestPositions[informantGroup].AddRange(swarmPositions[particleNumber]);
+
+                    if (_currentError[particleNumber] < _bestError)   //New population best
+                    {
+                        _bestError = _currentError[particleNumber];
+                        bestnet = particleNumber;
+
+                        Debug.WriteLine("best error: " + _bestError + "  generation: " + generation); //Writes new Best Error to Console
+                    }
+                }
             }
 
-            if (currentError[particlenum] < personalBestError[particlenum])
-            {
-                //Debug.WriteLine("NEWPB");
-                personalBestError[particlenum] = currentError[particlenum];
-                particleBestPositions[particlenum].Clear();
-                particleBestPositions[particlenum].AddRange(swarmPositions[particlenum]);
-                //Debug.WriteLine(pbestError[particlenum]+""+particlenum);
+           
 
-            }
-
-            //Debug.WriteLine(informantgroup);
-            //Debug.WriteLine(bestinformanterror[informantgroup]);
-            if (currentError[particlenum] < bestInformantErrror[informantgroup])
-            {
-                //Debug.WriteLine("newbestinformant");
-                bestInformantErrror[informantgroup] = currentError[particlenum];
-                informantBestPositions[informantgroup].Clear();
-                informantBestPositions[informantgroup].AddRange(swarmPositions[particlenum]);
-            }
-            return bestError / output.Count;
+            return _bestError / realOutput.Count;
 
         }
     }
