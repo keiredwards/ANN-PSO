@@ -25,8 +25,8 @@ namespace ANN_PSO
             float socialWeight = 1.2f;  //Pull of particle towards informant group's best
             float globalWeight = 1.6f;  //Pull of particle toward global best
 
-            PSO.Path = @"c:\Program Files\Data\2in_xor.txt";    //Path of Data set
-            PSO pso = new PSO(swarmSize, annStructure, maxGenerations, activationFunctions, inertiaWeight, cognitiveWeight, socialWeight, globalWeight, numberOfInformantGroups); //Creates new PSO with specified parameters.
+            Pso.Path = @"c:\Program Files\Data\2in_xor.txt";    //Path of Data set
+            Pso pso = new Pso(swarmSize, annStructure, maxGenerations, activationFunctions, inertiaWeight, cognitiveWeight, socialWeight, globalWeight, numberOfInformantGroups); //Creates new PSO with specified parameters.
 
 
             
