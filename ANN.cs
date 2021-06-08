@@ -12,42 +12,25 @@ namespace ANN_PSO
 {
     class ANN
     {
-
-
         int maxNeuronsInHiddenLayers;
         int outputLayerSize;
         static double[][] values;
         public static int inputLayerSize;
 
-
-
         public ANN(int particleNum, double[][][] weights, double[] biases, int activationFunction, int[] ANNStructure)
         {
+            inputLayerSize = ANNStructure[0];
+            outputLayerSize = ANNStructure[ANNStructure.Length-1];
 
-            for (int layer = 0; layer < ANNStructure.Length; layer++)
+            foreach (var layerSize in ANNStructure)
             {
-                if (layer == 0)
+                if (layerSize > maxNeuronsInHiddenLayers)
                 {
-                    inputLayerSize = ANNStructure[layer];
-                    //Debug.WriteLine(ANNStructure[layer]);
-                }
-                else if (layer == ANNStructure.Length)
-                {
-                    outputLayerSize = ANNStructure[layer];
-                }
-                else
-                {
-                    if (ANNStructure[layer] > maxNeuronsInHiddenLayers)
-                    {
-                        maxNeuronsInHiddenLayers = ANNStructure[layer];
-                    }
+                    maxNeuronsInHiddenLayers = layerSize;
                 }
             }
 
-
             int HiddenLayerCount = ANNStructure.Length - 2;
-
-
             values = new double[ANNStructure.Length][];
 
             for (int LayerNum = 0; LayerNum < ANNStructure.Length; LayerNum++)
@@ -60,7 +43,7 @@ namespace ANN_PSO
                     values[LayerNum][Neuron] = 0;
                 }
             }
-            //Debug.WriteLine(values[LayerNum][Neuron]);
+
             Random rnd = new Random();
 
             if (weights == null)
@@ -103,17 +86,17 @@ namespace ANN_PSO
                 }
             }
 
-            PSO.output[particleNum].Clear();
+            PSO.Output[particleNum].Clear();
 
             double[] inputx = new double[inputLayerSize];
             //Debug.WriteLine(InputLayerSize);
             if (inputLayerSize == 1)
             {
                 //Debug.WriteLine(PSO.input.Count);
-                for (int inputNumber = 0; inputNumber < PSO.input.Count; inputNumber++)
+                for (int inputNumber = 0; inputNumber < PSO.Input.Count; inputNumber++)
                 {
 
-                    inputx[0] = PSO.input[inputNumber];
+                    inputx[0] = PSO.Input[inputNumber];
                     Run(this, maxNeuronsInHiddenLayers, ANNStructure, outputLayerSize, particleNum, weights, biases, inputx, inputNumber, activationFunction);
                 }
             }
@@ -122,12 +105,12 @@ namespace ANN_PSO
 
                 //Debug.WriteLine(PSO.input.Count);
 
-                for (int inputnumber = 0; inputnumber < PSO.input.Count / 2; inputnumber += 2)
+                for (int inputnumber = 0; inputnumber < PSO.Input.Count / 2; inputnumber += 2)
                 {
 
 
-                    inputx[0] = PSO.input[inputnumber];
-                    inputx[1] = PSO.input[inputnumber + 1];
+                    inputx[0] = PSO.Input[inputnumber];
+                    inputx[1] = PSO.Input[inputnumber + 1];
                     Run(this, maxNeuronsInHiddenLayers, ANNStructure, outputLayerSize, particleNum, weights, biases, inputx, inputnumber, activationFunction);
                 }
             }
@@ -202,7 +185,7 @@ namespace ANN_PSO
             }
 
             //Debug.WriteLine(values[ANNStructure.Length - 1][0]);
-            PSO.output[particleNum].Add(values[ANNStructure.Length - 1][0]); //Sets out
+            PSO.Output[particleNum].Add(values[ANNStructure.Length - 1][0]); //Sets out
 
 
             if (inputNumber == 0)  //we only need to add the weights if its the first time they are generated, no use updating every time with same weights.
