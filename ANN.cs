@@ -106,7 +106,19 @@ namespace ANN_PSO
 
         }
 
-
+        /// <summary>
+        /// Creates ANN and processes Output using provided parameters.
+        /// </summary>
+        /// <param name="ann">The ANN</param>
+        /// <param name="MaxNeuronsInHiddenLayers">Maximum Hidden Layer Size</param>
+        /// <param name="ANNStructure">The Sizes of Each of the ANNs Layers</param>
+        /// <param name="OutputLayerSize">The Number of Outputs</param>
+        /// <param name="particleNum">The ANN's identifying particle number in the Particle Swarm</param>
+        /// <param name="weights">Weights of Each Neuron in the ANN</param>
+        /// <param name="biases">Biases of Each Layer in the ANN</param>
+        /// <param name="input">Input from the Data Set</param>
+        /// <param name="inputNumber">Function is called for Each input, denoted which of the inputs this is</param>
+        /// <param name="activationFunction">The Activation function applied to the ANN</param>
         public static void Run(ANN ann, int MaxNeuronsInHiddenLayers, int[] ANNStructure, int OutputLayerSize, int particleNum, double[][][] weights, double[] biases, double[] input, int inputNumber, int activationFunction)
         {
             //clears values
@@ -126,8 +138,6 @@ namespace ANN_PSO
             {
                 values[0][1] = input[1];
             }
-
-
 
             for (int LayerNum = 0; LayerNum < ANNStructure.Length - 1; LayerNum++) 
             {
@@ -158,11 +168,13 @@ namespace ANN_PSO
             }
 
             //Sets output value
-            PSO.Output[particleNum].Add(values[ANNStructure.Length - 1][0]); 
+            PSO.Output[particleNum].Add(values[ANNStructure.Length - 1][0]);
 
-            if (inputNumber == 0)  //we only need to add the weights if its the first time they are generated, no use updating every time with same weights.
+            //Add Weights
+            //Only adds weights if its the first time the ANN is generated
+            if (inputNumber == 0)  
             {
-                for (int LayerNum = 0; LayerNum < ANNStructure.Length - 1; LayerNum++)  //ADD WEIGHTS TO SWARMPOSITIONS
+                for (int LayerNum = 0; LayerNum < ANNStructure.Length - 1; LayerNum++) 
                 {
                     for (int Neuron = 0; Neuron < ANNStructure[LayerNum]; Neuron++)
                     {
@@ -182,6 +194,12 @@ namespace ANN_PSO
 
         }
 
+        /// <summary>
+        /// Processes a value through the specified Activation function
+        /// </summary>
+        /// <param name="value">The value to be processed</param>
+        /// <param name="activationFunction">Integer representing chosen activation function. 0: NULL, 1: Sigmoid , 2:Hyperbolic Tangent, 3: Cosine, 4: Math.Exp(-((value * value) / 2)), 5: non-linear cubic</param>
+        /// <returns>Value from activation function</returns>
         public static double ActivationFunction(double value, int activationFunction)
         {
             //Debug.WriteLine(value);
