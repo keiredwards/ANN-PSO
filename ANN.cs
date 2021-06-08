@@ -39,63 +39,52 @@ namespace ANN_PSO
 
                 for (int Neuron = 0; Neuron < ANNStructure[LayerNum]; Neuron++)
                 {
-
-                    values[LayerNum][Neuron] = 0;
+                    //sets Values of each Neuron to 0
+                    values[LayerNum][Neuron] = 0;  
                 }
             }
 
             Random rnd = new Random();
 
-            if (weights == null)
+            //Generate Random Weights for every Neuron Connection
+            if (weights == null) 
             {
-
                 weights = new double[HiddenLayerCount + 1][][];
-                //Debug.WriteLine("weights were null");
-                for (int LayerNum = 0; LayerNum < HiddenLayerCount + 1; LayerNum++) //Layer Loop                      //Generate Random Weights for every 
+
+                for (int LayerNum = 0; LayerNum < HiddenLayerCount + 1; LayerNum++)                    
                 {
                     weights[LayerNum] = new double[ANNStructure[LayerNum]][];
 
-
-                    //Debug.WriteLine(LayerNum);
-                    for (int Neuron = 0; Neuron < ANNStructure[LayerNum]; Neuron++) //Neuron Loop
+                    for (int Neuron = 0; Neuron < ANNStructure[LayerNum]; Neuron++) 
                     {
                         weights[LayerNum][Neuron] = new double[ANNStructure[LayerNum + 1]];
-                        for (int NeuronConnection = 0; NeuronConnection < ANNStructure[LayerNum + 1]; NeuronConnection++) //Neuron Connection Loop
+
+                        for (int NeuronConnection = 0; NeuronConnection < ANNStructure[LayerNum + 1]; NeuronConnection++) 
                         {
-
-                            double NeuronWeight = rnd.NextDouble();
-
-                            weights[LayerNum][Neuron][NeuronConnection] = NeuronWeight;
-                            //Debug.WriteLine(NeuronWeight + "hey");
-                            //Debug.WriteLine("LayerNum:" + LayerNum + "Neuron:" + Neuron + "NeuronConnection" + NeuronConnection + "NeuronWeight:" + NeuronWeight);
-
+                            weights[LayerNum][Neuron][NeuronConnection] = rnd.NextDouble();
                         }
                     }
                 }
             }
 
-            if (biases == null)
+            //Generate Biases for every Layer
+            if (biases == null) 
             {
-                //Debug.WriteLine("biases were null");
-
                 biases = new double[HiddenLayerCount + 1];
                 for (int LayerNum = 0; LayerNum < HiddenLayerCount + 1; LayerNum++)
                 {
                     biases[LayerNum] = rnd.NextDouble();
-
                 }
             }
 
             PSO.Output[particleNum].Clear();
-
             double[] inputx = new double[inputLayerSize];
-            //Debug.WriteLine(InputLayerSize);
-            if (inputLayerSize == 1)
+
+            //Current Implementation only works for 1 or 2 inputs to a single output as required for coursework.
+            if (inputLayerSize == 1)    
             {
-                //Debug.WriteLine(PSO.input.Count);
                 for (int inputNumber = 0; inputNumber < PSO.Input.Count; inputNumber++)
                 {
-
                     inputx[0] = PSO.Input[inputNumber];
                     Run(this, maxNeuronsInHiddenLayers, ANNStructure, outputLayerSize, particleNum, weights, biases, inputx, inputNumber, activationFunction);
                 }
@@ -103,16 +92,16 @@ namespace ANN_PSO
             else if (inputLayerSize == 2)
             {
 
-                //Debug.WriteLine(PSO.input.Count);
-
                 for (int inputnumber = 0; inputnumber < PSO.Input.Count / 2; inputnumber += 2)
                 {
-
-
                     inputx[0] = PSO.Input[inputnumber];
                     inputx[1] = PSO.Input[inputnumber + 1];
                     Run(this, maxNeuronsInHiddenLayers, ANNStructure, outputLayerSize, particleNum, weights, biases, inputx, inputnumber, activationFunction);
                 }
+            }
+            else
+            {
+                Debug.Write("Current Implementation only works for 1 or 2 inputs to a single output as required for coursework");
             }
 
         }
@@ -120,11 +109,8 @@ namespace ANN_PSO
 
         public static void Run(ANN ann, int MaxNeuronsInHiddenLayers, int[] ANNStructure, int OutputLayerSize, int particleNum, double[][][] weights, double[] biases, double[] input, int inputNumber, int activationFunction)
         {
-
-
-
-
-            for (int LayerNum = 0; LayerNum < ANNStructure.Length; LayerNum++)      //Sets all values to 0 - clears values
+            //clears values
+            for (int LayerNum = 0; LayerNum < ANNStructure.Length; LayerNum++)     
             {
                 for (int Neuron = 0; Neuron < ANNStructure[LayerNum]; Neuron++)
                 {
@@ -133,83 +119,64 @@ namespace ANN_PSO
                 }
             }
 
-
-
-            values[0][0] = input[0];  //Sets Input Values
-            //Debug.WriteLine(values[0][0]);
+            //Sets Input Values
+            values[0][0] = input[0]; 
 
             if (inputLayerSize == 2)
             {
                 values[0][1] = input[1];
-                //Debug.WriteLine(values[0][1]);
             }
 
 
 
-            for (int LayerNum = 0; LayerNum < ANNStructure.Length - 1; LayerNum++) // For each Layer
+            for (int LayerNum = 0; LayerNum < ANNStructure.Length - 1; LayerNum++) 
             {
-                //Debug.WriteLine("hello?");
-                for (int Neuron = 0; Neuron < ANNStructure[LayerNum]; Neuron++) //Neuron Loop
+                for (int Neuron = 0; Neuron < ANNStructure[LayerNum]; Neuron++)
                 {
-                    if (Neuron == 0) //this does need fixed
+                    //to be improved
+                    if (Neuron == 0) 
                     {
                         values[LayerNum][Neuron] += biases[LayerNum];
                     }
 
                     for (int NeuronConnection = 0; NeuronConnection < ANNStructure[LayerNum + 1]; NeuronConnection++)
                     {
-                        //Debug.WriteLine(LayerNum.ToString() + Neuron.ToString() + NeuronConnection.ToString());
-                        //Debug.WriteLine(weights[LayerNum][Neuron][NeuronConnection]);
-                        //Debug.WriteLine(values[LayerNum][Neuron]);
-                        values[LayerNum + 1][NeuronConnection] += values[LayerNum][Neuron] * weights[LayerNum][Neuron][NeuronConnection];
-
-                        //Debug.WriteLine(weights[LayerNum][Neuron][NeuronConnection]);
+                        //Calculates Values of next layer based on Neuron value and connection weight
+                        values[LayerNum + 1][NeuronConnection] += values[LayerNum][Neuron] * weights[LayerNum][Neuron][NeuronConnection];   
                     }
                 }
 
             }
 
-
-            for (int LayerNum = 1; LayerNum < ANNStructure.Length; LayerNum++)          //APPLY ACTIVATION FUNCTION
+            //Applies Activation Function on Neuron Value
+            for (int LayerNum = 1; LayerNum < ANNStructure.Length; LayerNum++) 
             {
                 for (int Neuron = 0; Neuron < ANNStructure[LayerNum]; Neuron++)
                 {
-                    //Debug.WriteLine(values[LayerNum][Neuron]);
                     values[LayerNum][Neuron] = ActivationFunction(values[LayerNum][Neuron], activationFunction);
-                    //Debug.WriteLine(values[LayerNum][Neuron]);
-
-
-
-
                 }
             }
 
-            //Debug.WriteLine(values[ANNStructure.Length - 1][0]);
-            PSO.Output[particleNum].Add(values[ANNStructure.Length - 1][0]); //Sets out
-
+            //Sets output value
+            PSO.Output[particleNum].Add(values[ANNStructure.Length - 1][0]); 
 
             if (inputNumber == 0)  //we only need to add the weights if its the first time they are generated, no use updating every time with same weights.
             {
-
                 for (int LayerNum = 0; LayerNum < ANNStructure.Length - 1; LayerNum++)  //ADD WEIGHTS TO SWARMPOSITIONS
                 {
                     for (int Neuron = 0; Neuron < ANNStructure[LayerNum]; Neuron++)
                     {
                         for (int NeuronConnection = 0; NeuronConnection < ANNStructure[LayerNum + 1]; NeuronConnection++)
                         {
-
                             PSO.swarmPositions[particleNum].Add(weights[LayerNum][Neuron][NeuronConnection]);
-
-                            //Debug.WriteLine(LayerNum.ToString() + Neuron.ToString() + NeuronConnection.ToString());
                         }
                     }
                 }
 
-                for (int LayerNum = 0; LayerNum < ANNStructure.Length - 1; LayerNum++)      //add biases
+                //Adds Biases
+                for (int LayerNum = 0; LayerNum < ANNStructure.Length - 1; LayerNum++)      
                 {
                     PSO.swarmPositions[particleNum].Add(biases[LayerNum]);
-                    //Debug.WriteLine(biases[LayerNum]);
-                    //Debug.WriteLine(LayerNum);
                 }
             }
 
