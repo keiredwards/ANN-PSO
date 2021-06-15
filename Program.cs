@@ -1,11 +1,6 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Text.RegularExpressions;
-
-namespace ANN_PSO
+﻿namespace ANN_PSO
 {
-    class Program
+    internal class Program
     {
         /// <summary>
         /// Defines parameters for and creates a new Particle Swarm of Artificial Neural Networks to discover optimal weights and biases for the ANN with defined structure

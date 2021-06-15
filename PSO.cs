@@ -219,7 +219,7 @@ namespace ANN_PSO
         /// <param name="numberOfInformantGroups">Number of Groups that the Population is split into for a particle's social pull</param>
         /// <returns></returns>
         /// 
-        static double AssessFitness(List<double> realOutput, int particleNumber, int generation, int numberOfInformantGroups)
+        private static void AssessFitness(IReadOnlyList<double> realOutput, int particleNumber, int generation, int numberOfInformantGroups)
         {
             double error = 0;
             int informantGroup = particleNumber % numberOfInformantGroups;
@@ -250,7 +250,6 @@ namespace ANN_PSO
                     }
                 }
             }
-            return _bestError / realOutput.Count;
         }
     }
 }
